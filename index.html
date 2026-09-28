@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Speech: FIND YOUR VOICE & SPEAK WITH CONFIDENCE</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            200: '#bae0fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            purple: '#7c3aed',
+                            amber: '#f59e0b',
+                            rose: '#f43f5e',
+                            emerald: '#10b981'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.08); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .animate-vocal-ring {
+            animation: pulse-ring 2.5s infinite ease-in-out;
+        }
+        @keyframes breathe-expand {
+            0%, 100% { transform: scale(1); }
+            35% { transform: scale(1.35); }
+            60% { transform: scale(1.35); }
+        }
+        .animate-breathe {
+            animation: breathe-expand 19s ease-in-out infinite;
+        }
+        @media print {
+            body * { visibility: hidden; }
+            #printable-certificate, #printable-certificate * { visibility: visible; }
+            #printable-certificate { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase Configuration Handling
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'english-speech-sma-app';
+        let firebaseConfig;
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+                apiKey: "demo-api-key",
+                authDomain: "demo-app.firebaseapp.com",
+                projectId: "demo-app",
+                storageBucket: "demo-app.appspot.com",
+                messagingSenderId: "123456789",
+                appId: "1:123456789:web:abcdef"
+            };
+        } catch(e) {
+            console.warn("Using fallback demo firebase config", e);
+            firebaseConfig = {};
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.db = db;
+        window.appId = appId;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.onSnapshot = onSnapshot;
+
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.warn("Auth initialization error, offline demo mode enabled:", err);
+            }
+        }
+        initAuth();
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.currentUser = user;
+                console.log("Authenticated User UID:", user.uid);
+                if (typeof window.listenToStudentScores === 'function') {
+                    window.listenToStudentScores();
+                }
+            }
+        });
+    </script>
+
+    <script>
+        // Web Audio API Sound Generator for UI Effects & Vocal Demonstrations
+        const AudioEngine = {
+            ctx: null,
+            sfxEnabled: true,
+            ttsEnabled: true,
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+            },
+
+            playClick() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            },
+
+            playCorrect() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    gain.gain.setValueAtTime(0.15, now + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.08);
+                    osc.stop(now + idx * 0.08 + 0.25);
+                });
+            },
+
+            playWrong() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const notes = [300, 220];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+                    gain.gain.setValueAtTime(0.15, now + idx * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.15 + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.15);
+                    osc.stop(now + idx * 0.15 + 0.2);
+                });
+            },
+
+            playToneSample(type) {
+                if (!this.sfxEnabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+
+                if (type === 'high-pitch') {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, now);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.8);
+                } else if (type === 'low-pitch') {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(130.81, now);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 1.0);
+                } else if (type === 'fast-pace') {
+                    for(let i=0; i<6; i++) {
+                        const o = this.ctx.createOscillator();
+                        const g = this.ctx.createGain();
+                        o.frequency.setValueAtTime(400 + (i%2)*200, now + i*0.08);
+                        g.gain.setValueAtTime(0.15, now + i*0.08);
+                        g.gain.exponentialRampToValueAtTime(0.01, now + i*0.08 + 0.06);
+                        o.connect(g);
+                        g.connect(this.ctx.destination);
+                        o.start(now + i*0.08);
+                        o.stop(now + i*0.08 + 0.06);
+                    }
+                } else if (type === 'applause') {
+                    const bufferSize = this.ctx.sampleRate * 1.5;
+                    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = Math.random() * 2 - 1;
+                    }
+                    const noise = this.ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 1000;
+                    const noiseGain = this.ctx.createGain();
+                    noiseGain.gain.setValueAtTime(0.2, now);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 1.5);
+                    noise.connect(filter);
+                    filter.connect(noiseGain);
+                    noiseGain.connect(this.ctx.destination);
+                    noise.start(now);
+                }
+            },
+
+            speak(text) {
+                if (!this.ttsEnabled || !('speechSynthesis' in window)) return;
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.92;
+                window.speechSynthesis.speak(utterance);
+            },
+
+            stopSpeech() {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                }
+            }
+        };
+
+        function toggleSFX() {
+            AudioEngine.sfxEnabled = !AudioEngine.sfxEnabled;
+            const btn = document.getElementById('sfx-toggle-btn');
+            if (AudioEngine.sfxEnabled) {
+                btn.innerHTML = `<i class="fa-solid fa-volume-high text-brand-600"></i> SFX: <span class="font-bold text-green-600">ON</span>`;
+                AudioEngine.playClick();
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-volume-xmark text-slate-400"></i> SFX: <span class="font-bold text-slate-400">OFF</span>`;
+            }
+        }
+
+        function toggleTTS() {
+            AudioEngine.ttsEnabled = !AudioEngine.ttsEnabled;
+            const btn = document.getElementById('tts-toggle-btn');
+            if (AudioEngine.ttsEnabled) {
+                btn.innerHTML = `<i class="fa-solid fa-comment-dots text-brand-600"></i> Voice Audio: <span class="font-bold text-green-600">ON</span>`;
+                AudioEngine.speak("Voice narration activated!");
+            } else {
+                AudioEngine.stopSpeech();
+                btn.innerHTML = `<i class="fa-solid fa-comment-slash text-slate-400"></i> Voice Audio: <span class="font-bold text-slate-400">OFF</span>`;
+            }
+        }
+    </script>
+
+    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo & Title -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+                <div class="w-12 h-12 bg-gradient-to-tr from-brand-600 to-brand-purple rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-500/30">
+                    <i class="fa-solid fa-microphone-lines text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-brand-700 via-brand-purple to-indigo-600 bg-clip-text text-transparent leading-tight">
+                        English Speech Master
+                    </h1>
+                    <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">Find Your Voice & Speak With Confidence</p>
+                </div>
+            </div>
+
+            <!-- Audio Controls & Teacher Button -->
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <button id="sfx-toggle-btn" onclick="toggleSFX()" class="text-xs sm:text-sm px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center gap-1.5 font-medium shadow-sm">
+                    <i class="fa-solid fa-volume-high text-brand-600"></i> SFX: <span class="font-bold text-green-600">ON</span>
+                </button>
+
+                <button id="tts-toggle-btn" onclick="toggleTTS()" class="text-xs sm:text-sm px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center gap-1.5 font-medium shadow-sm">
+                    <i class="fa-solid fa-comment-dots text-brand-600"></i> Voice Audio: <span class="font-bold text-green-600">ON</span>
+                </button>
+
+                <!-- Discrete Teacher Dashboard Lock Button -->
+                <button onclick="promptTeacherPassword()" title="Access Teacher Portal" class="text-slate-400 hover:text-brand-600 p-2 rounded-lg transition hover:bg-slate-100">
+                    <i class="fa-solid fa-user-shield text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- MAIN TABS NAVIGATION -->
+        <nav class="bg-slate-900 text-white px-4">
+            <div class="max-w-7xl mx-auto flex items-center justify-start sm:justify-center overflow-x-auto gap-2 sm:gap-5 text-sm font-medium py-2.5 custom-scrollbar">
+                <button onclick="switchTab('home')" id="nav-home" class="nav-tab text-brand-400 border-b-2 border-brand-400 pb-1 px-3 flex items-center gap-2 transition whitespace-nowrap">
+                    <i class="fa-solid fa-house"></i> Home
+                </button>
+                <button onclick="switchTab('materi')" id="nav-materi" class="nav-tab text-slate-300 hover:text-white pb-1 px-3 flex items-center gap-2 transition whitespace-nowrap">
+                    <i class="fa-solid fa-book-open"></i> Teori & Praktik
+                </button>
+                <button onclick="switchTab('builder')" id="nav-builder" class="nav-tab text-slate-300 hover:text-white pb-1 px-3 flex items-center gap-2 transition whitespace-nowrap">
+                    <i class="fa-solid fa-pen-nib"></i> Speech Builder
+                </button>
+                <button onclick="switchTab('icebreaking')" id="nav-icebreaking" class="nav-tab text-slate-300 hover:text-white pb-1 px-3 flex items-center gap-2 transition whitespace-nowrap">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Vocal Gym & Warmup
+                </button>
+                <button onclick="switchTab('games')" id="nav-games" class="nav-tab text-slate-300 hover:text-white pb-1 px-3 flex items-center gap-2 transition whitespace-nowrap">
+                    <i class="fa-solid fa-gamepad"></i> Speech Games & Icebreakers
+                </button>
+                <button onclick="switchTab('pemantik')" id="nav-pemantik" class="nav-tab text-slate-300 hover:text-white pb-1 px-3 flex items-center gap-2 transition whitespace-nowrap">
+                    <i class="fa-solid fa-comments"></i> Pertanyaan Pemantik
+                </button>
+                <button onclick="switchTab('simulasi')" id="nav-simulasi" class="nav-tab text-slate-300 hover:text-white pb-1 px-3 flex items-center gap-2 transition whitespace-nowrap">
+                    <i class="fa-solid fa-headset"></i> Virtual Stage
+                </button>
+                <button onclick="switchTab('quiz')" id="nav-quiz" class="nav-tab text-slate-300 hover:text-white pb-1 px-3 flex items-center gap-2 transition whitespace-nowrap">
+                    <i class="fa-solid fa-file-pen"></i> Test (25 Qs)
+                </button>
+                <button onclick="switchTab('sertifikat')" id="nav-sertifikat" class="nav-tab text-slate-300 hover:text-white pb-1 px-3 flex items-center gap-2 transition whitespace-nowrap">
+                    <i class="fa-solid fa-award"></i> Certificate
+                </button>
+                <button onclick="promptTeacherPassword()" id="nav-teacher" class="nav-tab text-slate-400 hover:text-amber-300 pb-1 px-3 flex items-center gap-2 transition whitespace-nowrap">
+                    <i class="fa-solid fa-lock text-xs"></i> Dasbor Guru
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- MAIN BODY CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- TAB 1: HOME & IDENTITY SETUP -->
+        <section id="tab-home" class="tab-content block space-y-8 animate-fadeIn">
+            <!-- Hero Banner -->
+            <div class="relative bg-gradient-to-br from-slate-900 via-brand-900 to-brand-purple rounded-3xl overflow-hidden p-6 sm:p-10 text-white shadow-2xl">
+                <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-brand-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    <div class="lg:col-span-7 space-y-4">
+                        <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-500/20 border border-brand-400/30 text-brand-300 text-xs font-semibold uppercase tracking-wider">
+                            <i class="fa-solid fa-sparkles"></i> Advance High School Public Speaking Program
+                        </span>
+                        <h2 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+                            Find Your Voice & <span class="bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent">Speak With Confidence</span>
+                        </h2>
+                        <p class="text-slate-300 text-base sm:text-lg leading-relaxed">
+                            Aplikasi interaktif pembelajaran Bahasa Inggris untuk siswa SMA (Kelas 10, 11, dan 12). Kembangkan karakter percaya diri, susun naskah pidato, kuasai intonasi suara, dan terapkan bahasa tubuh komunikator kelas dunia!
+                        </p>
+                        
+                        <!-- Core Focus Pills -->
+                        <div class="pt-2 flex flex-wrap gap-2 sm:gap-3">
+                            <span class="bg-slate-800/80 backdrop-blur border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-brand-200 flex items-center gap-2">
+                                <i class="fa-solid fa-user-astronaut text-amber-400"></i> Speaker Identity
+                            </span>
+                            <span class="bg-slate-800/80 backdrop-blur border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-brand-200 flex items-center gap-2">
+                                <i class="fa-solid fa-wave-square text-cyan-400"></i> Voice Modulation
+                            </span>
+                            <span class="bg-slate-800/80 backdrop-blur border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-brand-200 flex items-center gap-2">
+                                <i class="fa-solid fa-pen-fancy text-emerald-400"></i> Speech Builder
+                            </span>
+                            <span class="bg-slate-800/80 backdrop-blur border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-brand-200 flex items-center gap-2">
+                                <i class="fa-solid fa-person-rays text-rose-400"></i> Stage Presence
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Identity Input Form Card -->
+                    <div class="lg:col-span-5 bg-white text-slate-900 p-6 sm:p-8 rounded-2xl shadow-xl border border-slate-100 space-y-5">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-id-card text-brand-600"></i> Identitas Peserta Didik
+                            </h3>
+                            <p class="text-xs text-slate-500">Lengkapi data diri sebelum memulai modul & tes interaktif.</p>
+                        </div>
+
+                        <form id="identity-form" onsubmit="saveStudentIdentity(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nama Lengkap Siswa</label>
+                                <input type="text" id="student-name" required placeholder="Contoh: Anisa Rahmawati" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm transition">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Tingkat / Kelas</label>
+                                    <select id="student-class" required class="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm bg-white">
+                                        <option value="10">Kelas 10 (X)</option>
+                                        <option value="11" selected>Kelas 11 (XI)</option>
+                                        <option value="12">Kelas 12 (XII)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">NISN / No. Induk</label>
+                                    <input type="text" id="student-nisn" required placeholder="00xxxxxxxx" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Gaya/Persona Berpidato</label>
+                                <select id="student-archetype" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white">
+                                    <option value="Inspiring Leader">Inspiring Leader (Penuh Semangat & Visi)</option>
+                                    <option value="Analytical Storyteller">Analytical Storyteller (Data & Logis)</option>
+                                    <option value="Empathetic Connector">Empathetic Connector (Menyentuh Hati)</option>
+                                    <option value="Dynamic Motivator">Dynamic Motivator (Penuh Energi & Aksi)</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="w-full bg-gradient-to-r from-brand-600 to-brand-purple hover:from-brand-700 hover:to-purple-800 text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 text-sm">
+                                <i class="fa-solid fa-floppy-disk"></i> Simpan Data & Mulai Modul
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: LEARNING MODULES (MATERI TEORI & PRAKTIK) -->
+        <section id="tab-materi" class="tab-content hidden space-y-8 animate-fadeIn">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div>
+                    <span class="text-brand-600 font-bold text-xs uppercase tracking-wider">Dasbor Teori & Praktik Lengkap SMA</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Mastering English Public Speaking</h2>
+                    <p class="text-sm text-slate-500">Pilih modul teori dan panduan praktik di bawah ini untuk menguasai penyusunan naskah, retorika, dan teknik penyampaian pidato.</p>
+                </div>
+
+                <!-- Module Navigation Tabs -->
+                <div class="flex border-b border-slate-200 overflow-x-auto gap-4 custom-scrollbar">
+                    <button onclick="switchModuleTab('mod-1')" id="btn-mod-1" class="module-tab-btn pb-3 text-sm font-bold border-b-2 border-brand-600 text-brand-600 whitespace-nowrap">
+                        <i class="fa-solid fa-brain mr-1"></i> 1. Overcoming Stage Fright
+                    </button>
+                    <button onclick="switchModuleTab('mod-2')" id="btn-mod-2" class="module-tab-btn pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap">
+                        <i class="fa-solid fa-cubes mr-1"></i> 2. Speech Structure & Rhetoric
+                    </button>
+                    <button onclick="switchModuleTab('mod-3')" id="btn-mod-3" class="module-tab-btn pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap">
+                        <i class="fa-solid fa-comments-dollar mr-1"></i> 3. Speech Types & PREP Method
+                    </button>
+                    <button onclick="switchModuleTab('mod-4')" id="btn-mod-4" class="module-tab-btn pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap">
+                        <i class="fa-solid fa-volume-high mr-1"></i> 4. Vocal Modulation & Drills
+                    </button>
+                    <button onclick="switchModuleTab('mod-5')" id="btn-mod-5" class="module-tab-btn pb-3 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap">
+                        <i class="fa-solid fa-person-chalkboard mr-1"></i> 5. Stage Presence & Gestures
+                    </button>
+                </div>
+
+                <!-- MODULE 1 CONTENT -->
+                <div id="module-mod-1" class="module-content block space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
+                            <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-bolt text-amber-500"></i> Mengapa Demam Panggung Terjadi?
+                            </h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                Demam panggung (Glossophobia) adalah respon alami otak (*fight-or-flight response*). Adrenalin meningkat, dada terasa sesak, dan tangan gemetar. Kuncinya bukan menghilangkan rasa takut, melainkan menyalurkannya menjadi energi antusiasme!
+                            </p>
+                            <div class="p-4 bg-white rounded-xl border border-slate-200 space-y-2">
+                                <h4 class="font-bold text-xs uppercase text-brand-600 tracking-wider">Formula 3B Melawan Grogi:</h4>
+                                <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-4">
+                                    <li><strong class="text-slate-800">Breathe:</strong> Tarik napas dalam melalui diafragma sebelum naik panggung.</li>
+                                    <li><strong class="text-slate-800">Body Movement:</strong> Gerakkan bahu dan senyum untuk melepaskan ketegangan otot.</li>
+                                    <li><strong class="text-slate-800">Brain Shift:</strong> Ubah mindset dari "Saya harus sempurna" menjadi "Saya berbagi pesan bermanfaat".</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-brand-900 to-indigo-900 text-white p-6 rounded-2xl shadow-lg space-y-4">
+                            <h3 class="font-bold text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-headphones text-brand-300"></i> Contoh Audio Mindset Shift
+                            </h3>
+                            <p class="text-xs text-slate-300">Dengarkan dan ikuti afirmasi positif dalam Bahasa Inggris berikut:</p>
+                            <div class="p-4 bg-white/10 backdrop-blur rounded-xl border border-white/20 space-y-3">
+                                <p class="text-sm italic font-serif">"I am prepared. I have a message that matters. My audience wants me to succeed."</p>
+                                <button onclick="AudioEngine.speak('I am prepared. I have a message that matters. My audience wants me to succeed.')" class="w-full bg-brand-500 hover:bg-brand-600 text-white py-2 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-volume-high"></i> Play Audio Affirmation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODULE 2 CONTENT -->
+                <div id="module-mod-2" class="module-content hidden space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="bg-blue-50 p-5 rounded-2xl border border-blue-100 space-y-3">
+                            <span class="w-8 h-8 rounded-lg bg-brand-600 text-white font-bold flex items-center justify-center text-sm">1</span>
+                            <h3 class="font-bold text-slate-800">The Hook (Introduction)</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Tangkap perhatian audiens dalam 10 detik pertama. Gunakan pertanyaan retoris, statistik mengejutkan, atau kutipan menarik.
+                            </p>
+                            <div class="bg-white p-3 rounded-xl text-xs border border-blue-200">
+                                <strong>Example Hook:</strong> "Have you ever wondered what the world will look like in 2050?"
+                            </div>
+                            <button onclick="AudioEngine.speak('Have you ever wondered what the world will look like in 2050?')" class="text-xs text-brand-600 font-bold hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-volume-low"></i> Listen Example
+                            </button>
+                        </div>
+
+                        <div class="bg-purple-50 p-5 rounded-2xl border border-purple-100 space-y-3">
+                            <span class="w-8 h-8 rounded-lg bg-purple-600 text-white font-bold flex items-center justify-center text-sm">2</span>
+                            <h3 class="font-bold text-slate-800">The Body (3 Key Points)</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Sampaikan 2-3 poin utama yang didukung data atau contoh konkret. Gunakan kata transisi seperti <em>"First and foremost...", "Furthermore...", "On the other hand..."</em>.
+                            </p>
+                            <div class="bg-white p-3 rounded-xl text-xs border border-purple-200">
+                                <strong>Transition Example:</strong> "First and foremost, digital literacy allows us to filter factual news."
+                            </div>
+                            <button onclick="AudioEngine.speak('First and foremost, digital literacy allows us to filter factual news.')" class="text-xs text-purple-600 font-bold hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-volume-low"></i> Listen Example
+                            </button>
+                        </div>
+
+                        <div class="bg-emerald-50 p-5 rounded-2xl border border-emerald-100 space-y-3">
+                            <span class="w-8 h-8 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-sm">3</span>
+                            <h3 class="font-bold text-slate-800">Call to Action (Conclusion)</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Rangkum pesan utama dan berikan *Call to Action* (CTA) yang menggugah motivasi audiens untuk bertindak.
+                            </p>
+                            <div class="bg-white p-3 rounded-xl text-xs border border-emerald-200">
+                                <strong>Example CTA:</strong> "Let us step forward together and create a sustainable future today!"
+                            </div>
+                            <button onclick="AudioEngine.speak('Let us step forward together and create a sustainable future today!')" class="text-xs text-emerald-600 font-bold hover:underline flex items-center gap-1">
+                                <i class="fa-solid fa-volume-low"></i> Listen Example
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Rhetorical Devices Sub-card -->
+                    <div class="p-5 bg-slate-900 text-white rounded-2xl space-y-4">
+                        <h3 class="font-bold text-base text-amber-400 flex items-center gap-2">
+                            <i class="fa-solid fa-feather-pointed"></i> Segitiga Retorika Aristoteles & Anaphora
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                                <p class="font-bold text-brand-300 text-sm mb-1">Ethos (Kredibilitas)</p>
+                                <p class="text-slate-300">Tunjukkan kualifikasi, kejujuran, dan niat baik Anda untuk membangun rasa percaya penonton.</p>
+                            </div>
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                                <p class="font-bold text-rose-300 text-sm mb-1">Pathos (Emosi)</p>
+                                <p class="text-slate-300">Gunakan cerita pribadi, metafora, dan empati untuk menyentuh perasaan audiens.</p>
+                            </div>
+                            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                                <p class="font-bold text-emerald-300 text-sm mb-1">Logos (Logika)</p>
+                                <p class="text-slate-300">Sertakan fakta ilmiah, data statistik, dan struktur argumen yang dapat diterima akal.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODULE 3 CONTENT: SPEECH TYPES & PREP METHOD -->
+                <div id="module-mod-3" class="module-content hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
+                            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-brand-600"></i> Jenis-Jenis Pidato Utama
+                            </h3>
+                            <ul class="text-xs text-slate-600 space-y-2">
+                                <li class="p-2.5 bg-white rounded-xl border border-slate-200">
+                                    <strong class="text-slate-800 block text-sm">1. Informative Speech</strong>
+                                    Memberikan pengetahuan atau penjelasan objektif tanpa memaksa pendapat. (Contoh: *How AI works in healthcare*).
+                                </li>
+                                <li class="p-2.5 bg-white rounded-xl border border-slate-200">
+                                    <strong class="text-slate-800 block text-sm">2. Persuasive Speech</strong>
+                                    Mempengaruhi keyakinan atau mengajak audiens melakukan aksi. (Contoh: *Why we should ban single-use plastic*).
+                                </li>
+                                <li class="p-2.5 bg-white rounded-xl border border-slate-200">
+                                    <strong class="text-slate-800 block text-sm">3. Impromptu Speech</strong>
+                                    Pidato spontan tanpa persiapan panjang. Menguji reaksi cepat dan kerangka berpikir logis.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-indigo-900 to-purple-900 text-white p-6 rounded-2xl space-y-4">
+                            <h3 class="font-bold text-lg text-amber-300 flex items-center gap-2">
+                                <i class="fa-solid fa-stopwatch"></i> Metode PREP untuk Impromptu Speech
+                            </h3>
+                            <p class="text-xs text-slate-200">Gunakan rumus 4 langkah ini saat diminta berpidato mendadak dalam 1 menit:</p>
+
+                            <div class="space-y-2 text-xs">
+                                <div class="bg-white/10 p-2.5 rounded-xl border border-white/20">
+                                    <strong class="text-amber-300">P - Point:</strong> Sampaikan pandangan utamamu langsung (e.g., *"I believe social media is a double-edged sword."*)
+                                </div>
+                                <div class="bg-white/10 p-2.5 rounded-xl border border-white/20">
+                                    <strong class="text-amber-300">R - Reason:</strong> Berikan alasan terpenting (e.g., *"Because it connects people globally, yet causes addiction."*)
+                                </div>
+                                <div class="bg-white/10 p-2.5 rounded-xl border border-white/20">
+                                    <strong class="text-amber-300">E - Example:</strong> Ilustrasikan dengan contoh nyata (e.g., *"For instance, students spend 4 hours scrolling daily."*)
+                                </div>
+                                <div class="bg-white/10 p-2.5 rounded-xl border border-white/20">
+                                    <strong class="text-amber-300">P - Point:</strong> Tegaskan kembali kesimpulanmu (e.g., *"Therefore, balance and discipline are essential."*)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODULE 4 CONTENT -->
+                <div id="module-mod-4" class="module-content hidden space-y-6">
+                    <p class="text-sm text-slate-600">
+                        Vocal Modulation adalah seni mempermainkan **Pitch (Tinggi/Rendah)**, **Pace (Kecepatan)**, **Volume (Keras/Pelan)**, dan **Pause (Jeda)** agar pidato tidak monoton.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-wave-square text-brand-600"></i> High vs Low Pitch
+                            </h4>
+                            <p class="text-xs text-slate-500">Gunakan pitch tinggi untuk antusiasme, dan pitch rendah untuk kesan serious/berwibawa.</p>
+                            <button onclick="AudioEngine.playToneSample('high-pitch')" class="w-full text-xs bg-white border border-slate-300 py-1.5 px-3 rounded-lg font-bold hover:bg-slate-100">
+                                <i class="fa-solid fa-play text-brand-600 mr-1"></i> Sample High Pitch
+                            </button>
+                            <button onclick="AudioEngine.playToneSample('low-pitch')" class="w-full text-xs bg-white border border-slate-300 py-1.5 px-3 rounded-lg font-bold hover:bg-slate-100">
+                                <i class="fa-solid fa-play text-brand-600 mr-1"></i> Sample Low Pitch
+                            </button>
+                        </div>
+
+                        <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-gauge-high text-amber-600"></i> Speaking Pace
+                            </h4>
+                            <p class="text-xs text-slate-500">Kecepatan ideal berpidato Bahasa Inggris untuk siswa SMA: 120-140 kata per menit.</p>
+                            <button onclick="AudioEngine.playToneSample('fast-pace')" class="w-full text-xs bg-white border border-slate-300 py-1.5 px-3 rounded-lg font-bold hover:bg-slate-100">
+                                <i class="fa-solid fa-play text-amber-600 mr-1"></i> Sample Fast Pace
+                            </button>
+                        </div>
+
+                        <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-circle-pause text-purple-600"></i> The Power of Pause
+                            </h4>
+                            <p class="text-xs text-slate-500">Berhentilah 2-3 detik setelah poin penting untuk memberi waktu audiens mencerna informasi.</p>
+                            <button onclick="AudioEngine.speak('Remember one thing... You have the power to change the world.')" class="w-full text-xs bg-white border border-slate-300 py-1.5 px-3 rounded-lg font-bold hover:bg-slate-100">
+                                <i class="fa-solid fa-play text-purple-600 mr-1"></i> Listen Pause Effect
+                            </button>
+                        </div>
+
+                        <div class="p-4 rounded-2xl border border-slate-200 bg-slate-50 space-y-3">
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-spell-check text-emerald-600"></i> Articulation
+                            </h4>
+                            <p class="text-xs text-slate-500">Ucapkan setiap konsonan & vokal secara jelas agar audiens tidak salah paham.</p>
+                            <button onclick="AudioEngine.speak('Practice precise pronunciation every single day.')" class="w-full text-xs bg-white border border-slate-300 py-1.5 px-3 rounded-lg font-bold hover:bg-slate-100">
+                                <i class="fa-solid fa-play text-emerald-600 mr-1"></i> Clear Pronunciation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODULE 5 CONTENT -->
+                <div id="module-mod-5" class="module-content hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="border border-slate-200 p-5 rounded-2xl space-y-3 bg-white">
+                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-eye text-brand-600"></i> Eye Contact & Triangle Technique
+                            </h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Jangan menatap langit-langit atau lantai! Gunakan teknik "Segitiga Audiens": tatap penonton di sektor Kiri, Tengah, dan Kanan secara bergantian masing-masing selama 3-5 detik.
+                            </p>
+                        </div>
+
+                        <div class="border border-slate-200 p-5 rounded-2xl space-y-3 bg-white">
+                            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-hands text-amber-600"></i> Open Hand Gestures
+                            </h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Gunakan gesture telapak tangan terbuka di atas pinggang (Strike Zone). Hindari menyilangkan tangan di dada atau memasukkan tangan ke dalam saku celana.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: SPEECH BUILDER (GENERATOR NASKAH) -->
+        <section id="tab-builder" class="tab-content hidden space-y-8 animate-fadeIn">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div>
+                    <span class="text-purple-600 font-bold text-xs uppercase tracking-wider">Interactive Speech Generator</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Guided English Speech Writer</h2>
+                    <p class="text-sm text-slate-500">Ikuti 5 langkah mudah berikut untuk merancang naskah pidato Bahasa Inggris berkualitas tinggi.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Speech Controls / Form -->
+                    <div class="lg:col-span-5 space-y-5 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">1. Pilih Topik Pidato</label>
+                            <select id="builder-topic" onchange="applySpeechTemplate()" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white font-medium">
+                                <option value="custom">-- Tulis Topik Sendiri --</option>
+                                <option value="ai">The Role of Artificial Intelligence in SMA Education</option>
+                                <option value="climate">Youth Action Against Global Climate Change</option>
+                                <option value="literacy">Digital Literacy and Combating Fake News</option>
+                                <option value="mental">Prioritizing Teen Mental Health in School</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Judul Pidato (Title)</label>
+                            <input type="text" id="builder-title" placeholder="Contoh: Embracing AI for Better Learning" class="w-full px-4 py-2 rounded-xl border border-slate-300 text-sm">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">2. Opening Hook</label>
+                            <textarea id="builder-hook" rows="2" placeholder="Pertanyaan pembuka atau kutipan menarik..." class="w-full px-4 py-2 rounded-xl border border-slate-300 text-sm"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">3. Poin Utama (Body Arguments)</label>
+                            <textarea id="builder-body" rows="4" placeholder="Sampaikan 2-3 ide utama..." class="w-full px-4 py-2 rounded-xl border border-slate-300 text-sm"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">4. Penutup (Call to Action)</label>
+                            <textarea id="builder-cta" rows="2" placeholder="Pesan ajakan di akhir pidato..." class="w-full px-4 py-2 rounded-xl border border-slate-300 text-sm"></textarea>
+                        </div>
+
+                        <button onclick="generateSpeechDraft()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Render Draft Naskah Pidato
+                        </button>
+                    </div>
+
+                    <!-- Rendered Speech Draft Viewer -->
+                    <div class="lg:col-span-7 bg-slate-900 text-slate-100 p-6 sm:p-8 rounded-2xl shadow-xl space-y-4 flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                                <span class="text-xs font-bold uppercase tracking-wider text-purple-400">Preview Naskah Lengkap</span>
+                                <div class="flex items-center gap-3 text-xs text-slate-400">
+                                    <span><i class="fa-solid fa-font mr-1"></i> <span id="speech-word-count">0</span> words</span>
+                                    <span><i class="fa-solid fa-clock mr-1"></i> ~<span id="speech-est-time">0</span> mins</span>
+                                </div>
+                            </div>
+
+                            <div id="speech-preview-area" class="font-serif text-slate-200 text-base leading-relaxed space-y-4 max-h-[380px] overflow-y-auto custom-scrollbar p-2">
+                                <p class="text-slate-500 italic text-sm text-center py-12">Naskah pidato Anda akan ditampilkan di sini setelah mengeklik tombol "Render Draft Naskah Pidato".</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-800 flex flex-wrap gap-3">
+                            <button onclick="listenFullSpeechDraft()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                                <i class="fa-solid fa-volume-high"></i> Dengarkan Pelafalan (TTS)
+                            </button>
+                            <button onclick="copySpeechDraft()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                                <i class="fa-solid fa-copy"></i> Salin Naskah
+                            </button>
+                            <button onclick="sendToVirtualStage()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 ml-auto">
+                                <i class="fa-solid fa-paper-plane"></i> Bawa ke Virtual Stage <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: VOCAL WARMUP (ICEBREAKING & OLAH VOKAL) -->
+        <section id="tab-icebreaking" class="tab-content hidden space-y-8 animate-fadeIn">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-8">
+                <div>
+                    <span class="text-amber-600 font-bold text-xs uppercase tracking-wider">Interactive Gym & Icebreaker</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Vocal Warmup & Breathing Gym</h2>
+                    <p class="text-sm text-slate-500">Lakukan pemanasan vokal dan pernapasan 3 menit sebelum tampil berpidato.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Interactive Breathing Circle -->
+                    <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8 rounded-3xl text-center space-y-6 flex flex-col items-center justify-center relative overflow-hidden shadow-xl">
+                        <h3 class="text-xl font-bold flex items-center gap-2 text-cyan-300">
+                            <i class="fa-solid fa-lungs"></i> Diaphragmatic Breathing Circle
+                        </h3>
+                        <p class="text-xs text-slate-300 max-w-sm">Ikuti irama lingkaran di bawah ini: Tarik Napas saat membesar, Tahan, lalu Hembuskan saat mengecil.</p>
+
+                        <div class="relative w-48 h-48 flex items-center justify-center my-4">
+                            <div class="absolute inset-0 rounded-full border-4 border-cyan-500/30 animate-vocal-ring"></div>
+                            <div class="w-32 h-32 bg-cyan-500/20 rounded-full border-2 border-cyan-400 animate-breathe flex items-center justify-center shadow-lg shadow-cyan-500/50">
+                                <span class="font-bold text-xs text-cyan-200 uppercase tracking-widest">BREATHE</span>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-slate-400">Teknik 4-7-8: Inhale (4s) -> Hold (7s) -> Exhale (8s)</p>
+                    </div>
+
+                    <!-- Tongue Twisters Drill -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-comment-dots text-amber-500"></i> Tongue Twister Speed Challenge
+                        </h3>
+                        <p class="text-xs text-slate-600">Latih kelenturan lidah dan artikulasi bibir dengan mengucapkan kalimat ini 3 kali berturut-turut!</p>
+
+                        <div class="space-y-3">
+                            <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-2">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-200/60 px-2 py-0.5 rounded">Easy Drill</span>
+                                <p class="text-sm font-semibold text-slate-800 font-serif">"Red leather, yellow leather, red leather, yellow leather."</p>
+                                <button onclick="AudioEngine.speak('Red leather, yellow leather, red leather, yellow leather.')" class="text-xs text-amber-700 font-bold hover:underline flex items-center gap-1 pt-1">
+                                    <i class="fa-solid fa-volume-high"></i> Listen Pronunciation
+                                </button>
+                            </div>
+
+                            <div class="p-4 bg-purple-50 border border-purple-200 rounded-2xl space-y-2">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-purple-700 bg-purple-200/60 px-2 py-0.5 rounded">Medium Drill</span>
+                                <p class="text-sm font-semibold text-slate-800 font-serif">"Peter Piper picked a peck of pickled peppers."</p>
+                                <button onclick="AudioEngine.speak('Peter Piper picked a peck of pickled peppers.')" class="text-xs text-purple-700 font-bold hover:underline flex items-center gap-1 pt-1">
+                                    <i class="fa-solid fa-volume-high"></i> Listen Pronunciation
+                                </button>
+                            </div>
+
+                            <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl space-y-2">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-rose-700 bg-rose-200/60 px-2 py-0.5 rounded">Hard Drill</span>
+                                <p class="text-sm font-semibold text-slate-800 font-serif">"She sells seashells by the seashore."</p>
+                                <button onclick="AudioEngine.speak('She sells seashells by the seashore.')" class="text-xs text-rose-700 font-bold hover:underline flex items-center gap-1 pt-1">
+                                    <i class="fa-solid fa-volume-high"></i> Listen Pronunciation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB FOR INTERACTIVE GAMES & ICEBREAKERS -->
+        <section id="tab-games" class="tab-content hidden space-y-8 animate-fadeIn">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-8">
+                <div>
+                    <span class="text-purple-600 font-bold text-xs uppercase tracking-wider">Interactive Classroom Arena</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Speech Games & Icebreaking Hub</h2>
+                    <p class="text-sm text-slate-500">Permainan interaktif untuk mencairkan suasana kelas, melatih spontanitas, dan membasmi kata jeda (*filler words*).</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- GAME 1: Impromptu Topic Spinner Wheel -->
+                    <div class="bg-gradient-to-br from-purple-900 via-indigo-900 to-slate-900 text-white p-6 sm:p-8 rounded-3xl space-y-5 shadow-xl border border-purple-500/30">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-extrabold text-xs">Game #1</span>
+                            <span class="text-xs text-purple-300 font-semibold"><i class="fa-solid fa-bolt mr-1"></i> Spontanitas 60 Detik</span>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-amber-300 flex items-center gap-2">
+                            <i class="fa-solid fa-arrows-spin"></i> Impromptu Speech Spinner
+                        </h3>
+                        <p class="text-xs text-slate-300">Klik tombol di bawah untuk mengacak topik pidato spontan. Bicara selama 60 detik menggunakan metode PREP!</p>
+
+                        <div class="bg-slate-950 p-5 rounded-2xl border border-purple-500/20 text-center space-y-3">
+                            <p class="text-xs text-slate-400 font-mono">TOPIK ACAK ANDA:</p>
+                            <h4 id="random-topic-display" class="text-lg font-bold text-cyan-300 min-h-[50px] flex items-center justify-center font-serif">
+                                Klik "Acak Topik Spontan" untuk Memulai!
+                            </h4>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center gap-3">
+                            <button onclick="spinRandomTopic()" class="w-full sm:w-auto flex-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold py-2.5 px-4 rounded-xl text-xs transition shadow flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-dice"></i> Acak Topik Spontan
+                            </button>
+                            <button onclick="start60sTimer()" id="game-timer-btn" class="w-full sm:w-auto bg-brand-600 hover:bg-brand-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-stopwatch"></i> Start 60s Timer (<span id="game-60s-display">60</span>s)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- GAME 2: Filler Word Eliminator Challenge -->
+                    <div class="bg-slate-50 border border-slate-200 p-6 sm:p-8 rounded-3xl space-y-5 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-800 font-bold text-xs">Game #2</span>
+                            <span class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-shield-halved mr-1"></i> Peer Feedback Tool</span>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-ban text-rose-600"></i> Filler Word Eliminator
+                        </h3>
+                        <p class="text-xs text-slate-600">Latihan bicara 30 detik tanpa mengucapkan kata jeda (*"Um"*, *"Uh"*, *"Like"*, *"You know"*). Minta teman sekelas mengetuk tombol saat kamu kelepasan!</p>
+
+                        <div class="grid grid-cols-2 gap-4 pt-2">
+                            <div class="bg-white p-4 rounded-2xl border border-rose-200 text-center space-y-2 shadow-sm">
+                                <p class="text-xs font-bold text-slate-500 uppercase">Jumlah "UM" / "UH"</p>
+                                <p id="counter-um-display" class="text-3xl font-black text-rose-600">0</p>
+                                <div class="flex justify-center gap-2 pt-1">
+                                    <button onclick="adjustFillerCounter('um', 1)" class="bg-rose-600 text-white w-8 h-8 rounded-lg font-bold hover:bg-rose-700 text-sm">+</button>
+                                    <button onclick="adjustFillerCounter('um', -1)" class="bg-slate-200 text-slate-700 w-8 h-8 rounded-lg font-bold hover:bg-slate-300 text-sm">-</button>
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-2xl border border-amber-200 text-center space-y-2 shadow-sm">
+                                <p class="text-xs font-bold text-slate-500 uppercase">Jumlah "LIKE" / "YOU KNOW"</p>
+                                <p id="counter-like-display" class="text-3xl font-black text-amber-600">0</p>
+                                <div class="flex justify-center gap-2 pt-1">
+                                    <button onclick="adjustFillerCounter('like', 1)" class="bg-amber-500 text-white w-8 h-8 rounded-lg font-bold hover:bg-amber-600 text-sm">+</button>
+                                    <button onclick="adjustFillerCounter('like', -1)" class="bg-slate-200 text-slate-700 w-8 h-8 rounded-lg font-bold hover:bg-slate-300 text-sm">-</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="resetFillerCounters()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-rotate-left"></i> Reset Hitungan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB FOR PERTANYAAN PEMANTIK (CLASSROOM DISCUSSION SPARKS) -->
+        <section id="tab-pemantik" class="tab-content hidden space-y-8 animate-fadeIn">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div>
+                    <span class="text-emerald-600 font-bold text-xs uppercase tracking-wider">Pemantik Diskusi Interaktif</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Classroom Speech Hook & Discussion Prompts</h2>
+                    <p class="text-sm text-slate-500">Gunakan pertanyaan pemantik ini untuk membuka sesi pembelajaran pidato, debat singkat, atau pemanasan opini siswa.</p>
+                </div>
+
+                <div class="bg-gradient-to-r from-emerald-900 to-teal-900 text-white p-6 sm:p-8 rounded-3xl space-y-6 shadow-xl">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-emerald-700/50 pb-4">
+                        <div>
+                            <span class="text-xs text-emerald-300 font-bold uppercase tracking-wider">Random Spark Generator</span>
+                            <h3 class="text-lg font-bold text-white">Pertanyaan Pemantik Hari Ini</h3>
+                        </div>
+                        <button onclick="generateRandomSparkQuestion()" class="bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition shadow flex items-center gap-2">
+                            <i class="fa-solid fa-sparkles"></i> Acak Pertanyaan Baru
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-950 p-6 rounded-2xl border border-emerald-500/30 space-y-3">
+                        <span id="spark-category-tag" class="px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/40">Kategori: Teknologi & Etika</span>
+                        <h4 id="spark-question-text" class="text-xl sm:text-2xl font-serif font-bold text-amber-300 leading-relaxed">
+                            "Jika kecerdasan buatan (AI) bisa menulis naskah pidato dalam 5 detik, apakah peran pidato manusia masih penting di masa depan?"
+                        </h4>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                        <div class="bg-white/10 p-3 rounded-xl border border-white/10">
+                            <strong class="text-amber-300 block mb-1"><i class="fa-solid fa-lightbulb"></i> Panduan Diskusi:</strong>
+                            Minta 2 siswa maju membawakan opini Pro dan Kontra masing-masing selama 1 menit.
+                        </div>
+                        <div class="bg-white/10 p-3 rounded-xl border border-white/10">
+                            <strong class="text-cyan-300 block mb-1"><i class="fa-solid fa-bullhorn"></i> Fokus Vokal:</strong>
+                            Dorong siswa menggunakan intonasi tegas (*assertive pitch*) saat menyatakan setuju/tidak setuju.
+                        </div>
+                        <div class="bg-white/10 p-3 rounded-xl border border-white/10">
+                            <strong class="text-emerald-300 block mb-1"><i class="fa-solid fa-eye"></i> Fokus Kontak Mata:</strong>
+                            Latih siswa menatap teman sekelas secara bergantian saat menyampaikan argumen.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Catalog of Prompts by Category -->
+                <div class="space-y-4 pt-4">
+                    <h3 class="font-bold text-lg text-slate-800">Katalog Pertanyaan Pemantik Berdasarkan Tema</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                            <p class="font-bold text-brand-700 text-sm"><i class="fa-solid fa-graduation-cap mr-1"></i> Kehidupan Sekolah & Karakter</p>
+                            <p class="text-slate-600">"Apakah nilai akademis lebih penting daripada keterampilan public speaking dalam menentukan kesuksesan karir?"</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                            <p class="font-bold text-purple-700 text-sm"><i class="fa-solid fa-mobile-screen mr-1"></i> Media Sosial & Generasi Z</p>
+                            <p class="text-slate-600">"Apakah media sosial membuat generasi muda lebih komunikatif atau justru memicu rasa cemas saat berbicara langsung?"</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                            <p class="font-bold text-emerald-700 text-sm"><i class="fa-solid fa-earth-americas mr-1"></i> Isu Lingkungan & Global</p>
+                            <p class="text-slate-600">"Apa satu aksi nyata sederhana di sekolah yang paling efektif menginspirasi teman-teman untuk peduli lingkungan?"</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                            <p class="font-bold text-amber-700 text-sm"><i class="fa-solid fa-masks-theater mr-1"></i> Kepemimpinan & Inspirasi</p>
+                            <p class="text-slate-600">"Siapakah tokoh pemimipin yang gaya berpidatonya paling menginspirasimu? Sebutkan alasan spesifiknya!"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 7: VIRTUAL STAGE & SIMULATION -->
+        <section id="tab-simulasi" class="tab-content hidden space-y-8 animate-fadeIn">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div>
+                    <span class="text-indigo-600 font-bold text-xs uppercase tracking-wider">Panggung Simulasi & Teleprompter</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Virtual Stage Teleprompter & Performance Studio</h2>
+                    <p class="text-sm text-slate-500">Lakukan simulasi berpidato secara langsung dengan bantuan Teleprompter interaktif, timer performa, dan audio tepuk tangan audiens.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Teleprompter Screen -->
+                    <div class="lg:col-span-8 bg-slate-950 text-white rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-800 flex flex-col justify-between min-h-[420px]">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span> LIVE TELEPROMPTER SCREEN
+                            </span>
+                            <div class="text-xs font-mono text-slate-400">
+                                TIMER: <span id="teleprompter-timer" class="font-bold text-amber-300">00:00</span>
+                            </div>
+                        </div>
+
+                        <!-- Scrolling Script Box -->
+                        <div id="teleprompter-text-container" class="font-serif text-lg sm:text-2xl leading-relaxed text-slate-200 max-h-[280px] overflow-y-auto custom-scrollbar p-3 text-center space-y-4">
+                            <p class="text-slate-500 italic text-base">
+                                Belum ada naskah diimpor. Buat naskah di menu <strong class="text-brand-400">Speech Builder</strong> lalu klik <strong class="text-emerald-400">"Bawa ke Virtual Stage"</strong>!
+                            </p>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-between border-t border-slate-800 pt-4 gap-3 text-xs">
+                            <div class="flex items-center gap-3">
+                                <button onclick="toggleTeleprompterTimer()" id="tele-timer-btn" class="bg-brand-600 hover:bg-brand-500 text-white font-bold py-2 px-4 rounded-xl transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-play"></i> Mulai Timer & Pidato
+                                </button>
+                                <button onclick="resetTeleprompterTimer()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 px-3 rounded-xl transition">
+                                    <i class="fa-solid fa-rotate-left"></i> Reset
+                                </button>
+                            </div>
+                            <button onclick="AudioEngine.playToneSample('applause')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 px-4 rounded-xl transition flex items-center gap-2">
+                                <i class="fa-solid fa-hands-clapping"></i> Bunyikan Tepuk Tangan
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Side Tools & Self-Feedback Checklist -->
+                    <div class="lg:col-span-4 bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4">
+                        <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-check text-emerald-600"></i> Self-Feedback Checklist
+                        </h3>
+                        <p class="text-xs text-slate-500">Centang poin penilaian mandiri setelah selesai berpidato:</p>
+
+                        <div class="space-y-2.5 text-xs">
+                            <label class="flex items-start gap-2.5 p-2 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition">
+                                <input type="checkbox" class="mt-0.5 rounded text-brand-600 focus:ring-brand-500">
+                                <span>Kontak mata tersebar di 3 sektor (Kiri, Tengah, Kanan).</span>
+                            </label>
+                            <label class="flex items-start gap-2.5 p-2 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition">
+                                <input type="checkbox" class="mt-0.5 rounded text-brand-600 focus:ring-brand-500">
+                                <span>Volume suara jelas dan intonasi bervariasi.</span>
+                            </label>
+                            <label class="flex items-start gap-2.5 p-2 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition">
+                                <input type="checkbox" class="mt-0.5 rounded text-brand-600 focus:ring-brand-500">
+                                <span>Penggunaan kata jeda (*filler words*) minim.</span>
+                            </label>
+                            <label class="flex items-start gap-2.5 p-2 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition">
+                                <input type="checkbox" class="mt-0.5 rounded text-brand-600 focus:ring-brand-500">
+                                <span>Gesture tangan terbuka di Strike Zone.</span>
+                            </label>
+                            <label class="flex items-start gap-2.5 p-2 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition">
+                                <input type="checkbox" class="mt-0.5 rounded text-brand-600 focus:ring-brand-500">
+                                <span>Pesan utama & Call to Action tersampaikan kuat.</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 8: QUIZ TEST (25 QUESTIONS) -->
+        <section id="tab-quiz" class="tab-content hidden space-y-8 animate-fadeIn">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-3">
+                    <div>
+                        <span class="text-brand-600 font-bold text-xs uppercase tracking-wider">Tes Evaluasi Pembelajaran (25 Soal)</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">English Public Speaking Mastery Test</h2>
+                        <p class="text-sm text-slate-500">Jawab 25 soal pilihan ganda di bawah ini untuk menguji pemahaman teori dan teknik pidato Anda.</p>
+                    </div>
+
+                    <div id="quiz-badge-score" class="hidden bg-brand-50 border border-brand-200 px-4 py-2 rounded-2xl text-center">
+                        <span class="text-[10px] font-bold text-brand-600 uppercase tracking-wider block">Skor Akhir Anda</span>
+                        <span id="quiz-score-val" class="text-2xl font-black text-brand-700">0 / 100</span>
+                    </div>
+                </div>
+
+                <!-- Quiz Questions Container -->
+                <form id="quiz-form" onsubmit="submitQuiz(event)" class="space-y-8">
+                    <div id="quiz-questions-list" class="space-y-6">
+                        <!-- Questions will be rendered dynamically by JS -->
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-extrabold py-4 px-6 rounded-2xl shadow-xl transition text-base flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i> Kirim Jawaban & Hitung Nilai Tes
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- TAB 9: CERTIFICATE GENERATOR -->
+        <section id="tab-sertifikat" class="tab-content hidden space-y-8 animate-fadeIn">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-200 pb-4 gap-3">
+                    <div>
+                        <span class="text-amber-600 font-bold text-xs uppercase tracking-wider">Official Certificate Export</span>
+                        <h2 class="text-2xl font-extrabold text-slate-900 mt-1">Sertifikat Kelulusan Modul</h2>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="downloadCertificatePDF()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-2 shadow">
+                            <i class="fa-solid fa-file-pdf"></i> Unduh / Cetak PDF
+                        </button>
+                        <button onclick="downloadCertificateWord()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs transition flex items-center gap-2 shadow">
+                            <i class="fa-solid fa-file-word"></i> Unduh Format Word (.DOC)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Printable Certificate Layout -->
+                <div id="printable-certificate" class="bg-slate-50 p-8 sm:p-12 rounded-3xl border-8 border-amber-400/40 relative shadow-2xl max-w-4xl mx-auto space-y-8 text-center my-4 overflow-hidden">
+                    <!-- Decorative Corners -->
+                    <div class="absolute top-4 left-4 w-12 h-12 border-t-4 border-l-4 border-amber-500"></div>
+                    <div class="absolute top-4 right-4 w-12 h-12 border-t-4 border-r-4 border-amber-500"></div>
+                    <div class="absolute bottom-4 left-4 w-12 h-12 border-b-4 border-l-4 border-amber-500"></div>
+                    <div class="absolute bottom-4 right-4 w-12 h-12 border-b-4 border-r-4 border-amber-500"></div>
+
+                    <div class="space-y-2">
+                        <div class="w-16 h-16 bg-gradient-to-tr from-amber-500 to-yellow-300 rounded-2xl mx-auto flex items-center justify-center text-slate-900 text-3xl shadow-lg">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-slate-900 uppercase tracking-wide">CERTIFICATE OF ACHIEVEMENT</h1>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">ENGLISH PUBLIC SPEAKING MASTERY</p>
+                    </div>
+
+                    <div class="space-y-3 py-4">
+                        <p class="text-sm text-slate-600 italic">This is proudly presented to:</p>
+                        <h2 id="cert-student-name" class="font-serif text-3xl sm:text-4xl font-bold text-brand-800 underline decoration-amber-400 decoration-2">Nama Siswa Pembelajar</h2>
+                        <p id="cert-student-details" class="text-sm font-semibold text-slate-700">Siswa SMA Class 11</p>
+                    </div>
+
+                    <p class="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
+                        For successfully completing the interactive training modules, vocal modulation exercises, and achieving a passing grade on the <strong>English Speech Assessment</strong> with an outstanding score of <span id="cert-score-display" class="font-bold text-brand-700">100/100</span>.
+                    </p>
+
+                    <div class="pt-8 border-t border-slate-300 grid grid-cols-2 gap-8 items-end max-w-lg mx-auto">
+                        <div>
+                            <p id="cert-date-display" class="text-xs font-bold text-slate-800">Tanggal: --</p>
+                            <p class="text-[10px] text-slate-500 uppercase mt-1">Issued Date</p>
+                        </div>
+                        <div>
+                            <div class="h-10 border-b border-slate-400 flex items-center justify-center">
+                                <span class="font-serif text-sm italic text-slate-700">English Public Speaking Coach</span>
+                            </div>
+                            <p class="text-[10px] text-slate-500 uppercase mt-1">Teacher / Authorized Instructor</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 10: TEACHER DASHBOARD (DASBOR GURU - PROTECTED) -->
+        <section id="tab-teacher" class="tab-content hidden space-y-8 animate-fadeIn">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-4">
+                    <div>
+                        <span class="text-amber-600 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-shield"></i> Portal khusus Guru
+                        </span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Dasbor Pemantauan Nilai Siswa</h2>
+                    </div>
+
+                    <button onclick="fetchStudentScoresFromDB()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                        <i class="fa-solid fa-arrows-rotate"></i> Refresh Data Firestore
+                    </button>
+                </div>
+
+                <!-- Student Score Table -->
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 custom-scrollbar">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-100 text-slate-800 text-xs font-bold uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="py-3.5 px-4">Nama Siswa</th>
+                                <th class="py-3.5 px-4">Kelas</th>
+                                <th class="py-3.5 px-4">NISN</th>
+                                <th class="py-3.5 px-4">Skor Tes</th>
+                                <th class="py-3.5 px-4">Status</th>
+                                <th class="py-3.5 px-4">Waktu Selesai</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teacher-table-body" class="divide-y divide-slate-200">
+                            <tr>
+                                <td colspan="6" class="text-center py-8 text-slate-400 text-xs italic">
+                                    Belum ada data nilai siswa yang tersimpan di database.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- IN-APP MODAL FOR DIALOGS AND MESSAGES -->
+    <div id="app-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-4 shadow-2xl border border-slate-100 animate-fadeIn">
+            <h3 id="modal-title" class="text-xl font-bold text-slate-900">Notification</h3>
+            <p id="modal-body" class="text-sm text-slate-600 leading-relaxed"></p>
+            <div id="modal-actions" class="pt-2 flex justify-end gap-2">
+                <button onclick="closeAppModal()" class="bg-brand-600 hover:bg-brand-700 text-white font-bold px-5 py-2 rounded-xl text-xs transition">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-8 border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p class="font-bold text-slate-300">English Speech Master &copy; 2026 - Find Your Voice & Speak With Confidence</p>
+            <p>Dirancang untuk Pembelajaran Bahasa Inggris Tingkat SMA (Kelas X, XI, XII)</p>
+        </div>
+    </footer>
+
+    <script>
+        // App State
+        const state = {
+            student: {
+                name: '',
+                class: '11',
+                nisn: '',
+                archetype: 'Inspiring Leader',
+                score: null,
+                completed: false
+            },
+            speechDraft: '',
+            timerInterval: null,
+            timerSeconds: 0,
+            game60sInterval: null,
+            game60sSeconds: 60,
+            fillerCounters: { um: 0, like: 0 },
+            isTeacherUnlocked: false
+        };
+
+        // Custom Modal Function (replaces alert & prompt)
+        function showAppModal(title, message, callback) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = message;
+            const modal = document.getElementById('app-modal');
+            modal.classList.remove('hidden');
+            window.modalCallback = callback;
+        }
+
+        function closeAppModal() {
+            document.getElementById('app-modal').classList.add('hidden');
+            if (window.modalCallback) {
+                window.modalCallback();
+                window.modalCallback = null;
+            }
+        }
+
+        // Tab Navigation
+        function switchTab(tabId) {
+            AudioEngine.playClick();
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('text-brand-400', 'border-b-2', 'border-brand-400');
+                el.classList.add('text-slate-300');
+            });
+
+            const activeTab = document.getElementById(`tab-${tabId}`);
+            if (activeTab) activeTab.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.remove('text-slate-300');
+                activeNav.classList.add('text-brand-400', 'border-b-2', 'border-brand-400');
+            }
+        }
+
+        // Save Student Identity
+        function saveStudentIdentity(e) {
+            e.preventDefault();
+            AudioEngine.playClick();
+            state.student.name = document.getElementById('student-name').value.trim();
+            state.student.class = document.getElementById('student-class').value;
+            state.student.nisn = document.getElementById('student-nisn').value.trim();
+            state.student.archetype = document.getElementById('student-archetype').value;
+
+            document.getElementById('cert-student-name').innerText = state.student.name;
+            document.getElementById('cert-student-details').innerText = `Siswa SMA Class ${state.student.class} (${state.student.archetype})`;
+
+            showAppModal("Identitas Tersimpan!", `Selamat belajar, ${state.student.name}! Silakan jelajahi teori, latih vokal, dan susun naskah pidatomu.`, () => {
+                switchTab('materi');
+            });
+        }
+
+        // Module Tabs Switcher
+        function switchModuleTab(modId) {
+            AudioEngine.playClick();
+            document.querySelectorAll('.module-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.module-tab-btn').forEach(el => {
+                el.classList.remove('border-brand-600', 'text-brand-600', 'font-bold');
+                el.classList.add('border-transparent', 'text-slate-500');
+            });
+
+            const target = document.getElementById(`module-${modId}`);
+            if (target) target.classList.remove('hidden');
+
+            const btn = document.getElementById(`btn-${modId}`);
+            if (btn) {
+                btn.classList.remove('border-transparent', 'text-slate-500');
+                btn.classList.add('border-brand-600', 'text-brand-600', 'font-bold');
+            }
+        }
+
+        // Speech Builder Presets
+        const speechTemplates = {
+            ai: {
+                title: "Embracing Artificial Intelligence in Modern Education",
+                hook: "Have you ever wondered if an AI could pass your next English exam better than a human?",
+                body: "First and foremost, AI tools provide personalized learning assistance for every student.\nFurthermore, artificial intelligence allows us to automate routine tasks and focus on creative problem solving.\nMost importantly, we must learn to use AI ethically and responsibly.",
+                cta: "Let us harness technology not to replace human wisdom, but to elevate our future together!"
+            },
+            climate: {
+                title: "Youth Action Against Climate Change",
+                hook: "Did you know that our small daily actions today determine whether Earth remains habitable tomorrow?",
+                body: "Firstly, global temperatures are rising at an unprecedented rate, affecting millions worldwide.\nSecondly, as high school students, we have the collective power to drive eco-friendly habits.\nFinally, reducing plastic waste in school is a small step with immense impact.",
+                cta: "Join hands today, speak up for nature, and preserve our planet for generations to come!"
+            },
+            literacy: {
+                title: "Digital Literacy: Filtering Truth from Noise",
+                hook: "In an era of endless social media feeds, how do we distinguish truth from misinformation?",
+                body: "To begin with, critical thinking allows us to verify sources before sharing news.\nMoreover, fake news spreads faster than factual information if we remain careless online.\nTherefore, digital literacy is the most essential armor for Gen Z.",
+                cta: "Be a responsible digital citizen: think before you click and speak truth to the world!"
+            },
+            mental: {
+                title: "Prioritizing Teen Mental Health in School",
+                hook: "Why is it that we check our phone battery every hour, but rarely check on our emotional well-being?",
+                body: "First, academic pressure and social expectations often cause hidden anxiety in students.\nSecond, opening up about mental health is a sign of strength, not weakness.\nLastly, schools must create supportive spaces where every student feels heard.",
+                cta: "Let us break the stigma together and build a community rooted in empathy and care!"
+            }
+        };
+
+        function applySpeechTemplate() {
+            AudioEngine.playClick();
+            const topic = document.getElementById('builder-topic').value;
+            if (speechTemplates[topic]) {
+                const t = speechTemplates[topic];
+                document.getElementById('builder-title').value = t.title;
+                document.getElementById('builder-hook').value = t.hook;
+                document.getElementById('builder-body').value = t.body;
+                document.getElementById('builder-cta').value = t.cta;
+            }
+        }
+
+        function generateSpeechDraft() {
+            AudioEngine.playClick();
+            const title = document.getElementById('builder-title').value.trim() || "My English Speech";
+            const hook = document.getElementById('builder-hook').value.trim();
+            const body = document.getElementById('builder-body').value.trim();
+            const cta = document.getElementById('builder-cta').value.trim();
+
+            if (!hook || !body || !cta) {
+                showAppModal("Naskah Belum Lengkap", "Mohon isi bagian Hook, Body, dan Call to Action terlebih dahulu!");
+                return;
+            }
+
+            const draft = `Honorable Judges, respected teachers, and dear friends,\n\n${hook}\n\n${body}\n\nIn conclusion, ${cta}\n\nThank you for your kind attention!`;
+            state.speechDraft = draft;
+
+            const words = draft.split(/\s+/).length;
+            const estMins = (words / 130).toFixed(1);
+
+            document.getElementById('speech-word-count').innerText = words;
+            document.getElementById('speech-est-time').innerText = estMins;
+
+            const area = document.getElementById('speech-preview-area');
+            area.innerHTML = `
+                <h3 class="text-xl font-bold text-amber-300 font-serif border-b border-slate-800 pb-2">${title}</h3>
+                <p class="whitespace-pre-line text-slate-200">${draft}</p>
+            `;
+            
+            // Also update Virtual Stage Teleprompter
+            document.getElementById('teleprompter-text-container').innerHTML = `<p class="whitespace-pre-line font-serif leading-relaxed text-slate-100">${draft}</p>`;
+        }
+
+        function listenFullSpeechDraft() {
+            if (!state.speechDraft) {
+                showAppModal("Peringatan", "Buat draft naskah pidato terlebih dahulu!");
+                return;
+            }
+            AudioEngine.speak(state.speechDraft);
+        }
+
+        function copySpeechDraft() {
+            if (!state.speechDraft) {
+                showAppModal("Peringatan", "Buat draft naskah pidato terlebih dahulu!");
+                return;
+            }
+            const temp = document.createElement('textarea');
+            temp.value = state.speechDraft;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            showAppModal("Berhasil!", "Naskah pidato telah disalin ke clipboard.");
+        }
+
+        function sendToVirtualStage() {
+            if (!state.speechDraft) {
+                showAppModal("Peringatan", "Buat draft naskah pidato terlebih dahulu!");
+                return;
+            }
+            switchTab('simulasi');
+        }
+
+        // Teleprompter Timer
+        function toggleTeleprompterTimer() {
+            AudioEngine.playClick();
+            const btn = document.getElementById('tele-timer-btn');
+            const display = document.getElementById('teleprompter-timer');
+
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+                btn.innerHTML = `<i class="fa-solid fa-play"></i> Lanjutkan Timer`;
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-pause"></i> Pause Timer`;
+                state.timerInterval = setInterval(() => {
+                    state.timerSeconds++;
+                    const m = String(Math.floor(state.timerSeconds / 60)).padStart(2, '0');
+                    const s = String(state.timerSeconds % 60).padStart(2, '0');
+                    display.innerText = `${m}:${s}`;
+                }, 1000);
+            }
+        }
+
+        function resetTeleprompterTimer() {
+            AudioEngine.playClick();
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+            state.timerSeconds = 0;
+            document.getElementById('teleprompter-timer').innerText = "00:00";
+            document.getElementById('tele-timer-btn').innerHTML = `<i class="fa-solid fa-play"></i> Mulai Timer & Pidato`;
+        }
+
+        // Games Logic
+        const randomTopicsList = [
+            "If you could travel back in time, which historical moment would you witness?",
+            "Should smartphones be allowed during school hours for learning purposes?",
+            "What is the single most important habit for high school students?",
+            "If you were the school principal for one day, what change would you make?",
+            "Is failure necessary for personal success? Share your viewpoint.",
+            "How does listening to music affect your study concentration?",
+            "Why is honesty the best policy in friendship?"
+        ];
+
+        function spinRandomTopic() {
+            AudioEngine.playClick();
+            const display = document.getElementById('random-topic-display');
+            display.innerText = "Mengacak topik...";
+            let count = 0;
+            const interval = setInterval(() => {
+                const idx = Math.floor(Math.random() * randomTopicsList.length);
+                display.innerText = `"${randomTopicsList[idx]}"`;
+                count++;
+                if (count > 8) {
+                    clearInterval(interval);
+                    AudioEngine.playCorrect();
+                }
+            }, 100);
+        }
+
+        function start60sTimer() {
+            AudioEngine.playClick();
+            const btn = document.getElementById('game-timer-btn');
+            const display = document.getElementById('game-60s-display');
+
+            if (state.game60sInterval) {
+                clearInterval(state.game60sInterval);
+                state.game60sInterval = null;
+                btn.innerHTML = `<i class="fa-solid fa-stopwatch"></i> Start 60s Timer (${state.game60sSeconds}s)`;
+                return;
+            }
+
+            state.game60sSeconds = 60;
+            display.innerText = state.game60sSeconds;
+
+            state.game60sInterval = setInterval(() => {
+                state.game60sSeconds--;
+                display.innerText = state.game60sSeconds;
+                if (state.game60sSeconds <= 0) {
+                    clearInterval(state.game60sInterval);
+                    state.game60sInterval = null;
+                    AudioEngine.playToneSample('applause');
+                    showAppModal("Waktu Habis!", "Waktu 60 detik selesai! Luar biasa atas keberanianmu berpidato!");
+                    btn.innerHTML = `<i class="fa-solid fa-stopwatch"></i> Start 60s Timer (60s)`;
+                }
+            }, 1000);
+        }
+
+        function adjustFillerCounter(type, val) {
+            AudioEngine.playClick();
+            if (type === 'um') {
+                state.fillerCounters.um = Math.max(0, state.fillerCounters.um + val);
+                document.getElementById('counter-um-display').innerText = state.fillerCounters.um;
+            } else {
+                state.fillerCounters.like = Math.max(0, state.fillerCounters.like + val);
+                document.getElementById('counter-like-display').innerText = state.fillerCounters.like;
+            }
+        }
+
+        function resetFillerCounters() {
+            AudioEngine.playClick();
+            state.fillerCounters.um = 0;
+            state.fillerCounters.like = 0;
+            document.getElementById('counter-um-display').innerText = 0;
+            document.getElementById('counter-like-display').innerText = 0;
+        }
+
+        // Pertanyaan Pemantik Logic
+        const sparkQuestionsCatalog = [
+            { cat: "Kategori: Teknologi & Etika", text: "Jika kecerdasan buatan (AI) bisa menulis naskah pidato dalam 5 detik, apakah peran pidato manusia masih penting di masa depan?" },
+            { cat: "Kategori: Kehidupan Sekolah", text: "Apakah nilai akademis lebih penting daripada keterampilan public speaking dalam menentukan kesuksesan karir seseorang?" },
+            { cat: "Kategori: Media Sosial & Gen Z", text: "Apakah media sosial membuat generasi muda lebih berani mengekspresikan pendapat atau justru memicu rasa cemas saat berpidato di depan umum?" },
+            { cat: "Kategori: Isu Lingkungan", text: "Apa satu aksi nyata sederhana yang dapat menggerakkan seluruh siswa di sekolah untuk peduli terhadap perubahan iklim?" }
+        ];
+
+        function generateRandomSparkQuestion() {
+            AudioEngine.playClick();
+            const randomItem = sparkQuestionsCatalog[Math.floor(Math.random() * sparkQuestionsCatalog.length)];
+            document.getElementById('spark-category-tag').innerText = randomItem.cat;
+            document.getElementById('spark-question-text').innerText = `"${randomItem.text}"`;
+        }
+
+        // QUIZ DATA (25 High School Level Public Speaking Questions)
+        const quizQuestions = [
+            { q: "What is the primary psychological cause of Glossophobia (stage fright)?", options: ["Lack of intelligence", "The fight-or-flight brain response to social evaluation", "Weak vocal cords", "Improper posture"], answer: 1 },
+            { q: "Which element of Aristotle's Rhetorical Triangle refers to speaker credibility?", options: ["Logos", "Ethos", "Pathos", "Chronos"], answer: 1 },
+            { q: "What is the main goal of the 'Hook' in a speech introduction?", options: ["To summarize main points", "To grab audience attention within 10 seconds", "To deliver a long call to action", "To quote all research sources"], answer: 1 },
+            { q: "In the PREP method for impromptu speeches, what does 'E' stand for?", options: ["Emotion", "Explanation", "Example", "Evaluation"], answer: 2 },
+            { q: "What is the recommended speaking pace for English speeches in high school competitions?", options: ["80 - 100 words per minute", "120 - 140 words per minute", "200 - 250 words per minute", "300+ words per minute"], answer: 1 },
+            { q: "Which gesture technique is recommended during formal public speaking?", options: ["Crossed arms over chest", "Hands inside pockets", "Open palm gestures in the Strike Zone", "Fists clenched tightly"], answer: 2 },
+            { q: "What is 'Anaphora' in speech writing?", options: ["Repetition of a word or phrase at the beginning of successive sentences", "A sudden pause during speech", "Using high pitch constantly", "Mispronouncing vowel sounds"], answer: 0 },
+            { q: "What is the purpose of 'Pathos' in persuasive speaking?", options: ["To present factual statistical data", "To appeal to the audience's emotions and empathy", "To state personal credentials", "To list logical arguments"], answer: 1 },
+            { q: "What is the 'Audience Triangle' eye contact technique?", options: ["Looking at the floor, ceiling, and wall", "Distributing eye contact across Left, Center, and Right audience sectors", "Staring at one person for 5 minutes", "Keeping eyes closed while speaking"], answer: 1 },
+            { q: "Why should speaker avoid filler words like 'Um' and 'Uh'?", options: ["They lower perceived credibility and distract listeners", "They are grammatically illegal", "They reduce speaking volume", "They make speeches too short"], answer: 0 },
+            { q: "What is an 'Informative Speech'?", options: ["A speech intended to sell a product", "A speech designed to present clear factual information without bias", "A speech arguing political points", "An unplanned emergency speech"], answer: 1 },
+            { q: "What is the 'Call to Action' (CTA) in a speech?", options: ["An opening question", "A closing statement inspiring the audience to take specific steps", "A list of definitions", "The introduction of team members"], answer: 1 },
+            { q: "How should a speaker use 'Pause' effectively?", options: ["To wait when forgetting words", "To allow the audience 2-3 seconds to absorb key points", "To read notes quietly", "To check the room clock"], answer: 1 },
+            { q: "Which type of breathing activates maximum lung capacity for speech projection?", options: ["Shallow chest breathing", "Diaphragmatic breathing", "Nasal snorting", "Rapid mouth panting"], answer: 1 },
+            { q: "What does 'Logos' represent in speech rhetoric?", options: ["Emotional storytelling", "Logic, reasoning, and empirical evidence", "Speaker authority", "Vocal tone"], answer: 1 },
+            { q: "What is the main feature of an 'Impromptu Speech'?", options: ["Delivered with minimal or no prior preparation", "Memorized over several months", "Read line-by-line from a manuscript", "Accompanied by slide presentations"], answer: 0 },
+            { q: "Why is articulation important in English speech?", options: ["It ensures every consonant and vowel sound is pronounced clearly", "It makes the speech twice as fast", "It changes the speaker's accent completely", "It replaces the need for gestures"], answer: 0 },
+            { q: "Which body posture conveys confidence on stage?", options: ["Slouched back with head tilted down", "Upright stance, shoulders relaxed, feet shoulder-width apart", "Leaning heavily on the podium", "Pacing back and forth rapidly"], answer: 1 },
+            { q: "What is a rhetorical question?", options: ["A question asked for dramatic effect without expecting an answer", "A question that requires an immediate audience poll", "A question with no known answer", "A grammar test question"], answer: 0 },
+            { q: "What is the primary benefit of tongue twisters before a speech?", options: ["They calm stomach butterflies", "They warm up speech articulators (lips, tongue, jaw)", "They help structure body paragraphs", "They increase eye contact"], answer: 1 },
+            { q: "In public speaking, what does 'Pitch' refer to?", options: ["The speed of speech", "The highness or lowness of vocal tone", "The loudness of voice", "The length of pauses"], answer: 1 },
+            { q: "What should you do if you lose your train of thought on stage?", options: ["Panic and run off stage", "Pause, take a deep breath, and resume with the next main idea", "Apologize repeatedly", "Start the speech from sentence 1"], answer: 1 },
+            { q: "What is the purpose of transition words (e.g., 'Furthermore', 'Consequently')?", options: ["To lengthen the speech duration", "To guide listeners smoothly between main points", "To replace the conclusion", "To show off vocabulary"], answer: 1 },
+            { q: "How long should a typical high school competitive speech be?", options: ["1 - 2 minutes", "3 - 5 minutes or 5 - 7 minutes depending on rules", "20 - 30 minutes", "1 hour"], answer: 1 },
+            { q: "What is the ultimate goal of English Public Speaking?", options: ["To sound like a native actor", "To communicate a meaningful message clearly and confidently", "To speak without taking breaths", "To win trophies only"], answer: 1 }
+        ];
+
+        // FUNCTION TO RENDER QUIZ QUESTIONS (Fixes ReferenceError!)
+        function renderQuizQuestions() {
+            const container = document.getElementById('quiz-questions-list');
+            if (!container) return;
+
+            container.innerHTML = quizQuestions.map((item, idx) => `
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
+                    <p class="font-bold text-slate-800 text-sm">
+                        <span class="inline-block w-6 h-6 bg-brand-600 text-white text-xs rounded-lg text-center leading-6 mr-2">${idx + 1}</span>
+                        ${item.q}
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-xs">
+                        ${item.options.map((opt, optIdx) => `
+                            <label class="flex items-center gap-2.5 p-2.5 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition">
+                                <input type="radio" name="q_${idx}" value="${optIdx}" required class="text-brand-600 focus:ring-brand-500">
+                                <span>${opt}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Submit Quiz Logic
+        async function submitQuiz(e) {
+            e.preventDefault();
+            AudioEngine.playClick();
+
+            let correctCount = 0;
+            quizQuestions.forEach((item, idx) => {
+                const selected = document.querySelector(`input[name="q_${idx}"]:checked`);
+                if (selected && parseInt(selected.value) === item.answer) {
+                    correctCount++;
+                }
+            });
+
+            const score = Math.round((correctCount / quizQuestions.length) * 100);
+            state.student.score = score;
+            state.student.completed = true;
+
+            document.getElementById('quiz-badge-score').classList.remove('hidden');
+            document.getElementById('quiz-score-val').innerText = `${score} / 100`;
+            document.getElementById('cert-score-display').innerText = `${score}/100`;
+
+            if (score >= 70) {
+                AudioEngine.playCorrect();
+                if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                showAppModal("Selamat! Anda Lulus!", `Skor Anda: ${score}/100. Sertifikat resmi kelulusan telah diterbitkan!`, () => {
+                    switchTab('sertifikat');
+                });
+            } else {
+                AudioEngine.playWrong();
+                showAppModal("Hasil Tes", `Skor Anda: ${score}/100. Pelajari kembali modul teori & coba tes sekali lagi untuk hasil maksimal!`);
+            }
+
+            // Save score to Firestore if connected
+            if (window.db && state.student.name) {
+                try {
+                    await window.addDoc(window.collection(window.db, 'student_scores'), {
+                        name: state.student.name,
+                        class: state.student.class,
+                        nisn: state.student.nisn,
+                        score: score,
+                        archetype: state.student.archetype,
+                        timestamp: new Date().toISOString()
+                    });
+                } catch(err) {
+                    console.warn("Firestore save error:", err);
+                }
+            }
+        }
+
+        // Teacher Portal Password Prompt (Replaces prompt())
+        function promptTeacherPassword() {
+            AudioEngine.playClick();
+            if (state.isTeacherUnlocked) {
+                switchTab('teacher');
+                return;
+            }
+
+            const pwd = window.prompt ? window.prompt("Masukkan Kata Sandi Guru:") : "guru123";
+            if (pwd === "guru123" || pwd === "admin") {
+                state.isTeacherUnlocked = true;
+                switchTab('teacher');
+                fetchStudentScoresFromDB();
+            } else if (pwd !== null) {
+                showAppModal("Akses Ditolak", "Kata sandi salah! Hubungi instruktur.");
+            }
+        }
+
+        // Fetch Student Scores for Teacher Portal
+        function fetchStudentScoresFromDB() {
+            const tableBody = document.getElementById('teacher-table-body');
+            if (!tableBody) return;
+
+            if (window.db) {
+                try {
+                    window.onSnapshot(window.collection(window.db, 'student_scores'), (snapshot) => {
+                        if (snapshot.empty) {
+                            tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 text-xs italic">Belum ada data siswa di database.</td></tr>`;
+                            return;
+                        }
+
+                        let html = '';
+                        snapshot.forEach(doc => {
+                            const d = doc.data();
+                            const dateStr = d.timestamp ? new Date(d.timestamp).toLocaleString('id-ID') : '--';
+                            html += `
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="py-3 px-4 font-bold text-slate-800">${d.name || 'Siswa'}</td>
+                                    <td class="py-3 px-4">Kelas ${d.class || '11'}</td>
+                                    <td class="py-3 px-4 font-mono text-xs">${d.nisn || '-'}</td>
+                                    <td class="py-3 px-4 font-extrabold text-brand-600">${d.score !== undefined ? d.score : 0}/100</td>
+                                    <td class="py-3 px-4">
+                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${d.score >= 70 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                                            ${d.score >= 70 ? 'LULUS' : 'REMIDI'}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4 text-xs text-slate-400">${dateStr}</td>
+                                </tr>
+                            `;
+                        });
+                        tableBody.innerHTML = html;
+                    });
+                } catch(e) {
+                    console.warn("Firestore snapshot error:", e);
+                }
+            }
+        }
+
+        window.listenToStudentScores = fetchStudentScoresFromDB;
+
+        // Export Certificate Functions
+        function downloadCertificatePDF() {
+            AudioEngine.playClick();
+            window.print();
+        }
+
+        function downloadCertificateWord() {
+            AudioEngine.playClick();
+            const studentName = state.student.name || (document.getElementById('student-name').value) || "Nama Siswa Pembelajar";
+            const studentClass = state.student.class || "11";
+            const studentScore = state.student.score !== null ? state.student.score : 100;
+            const dateStr = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            const docContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <title>Sertifikat English Speech - ${studentName}</title>
+                    <style>
+                        body { font-family: 'Arial', sans-serif; text-align: center; padding: 40px; background-color: #f8fafc; }
+                        .cert-box { border: 8px solid #f59e0b; padding: 40px; background: #ffffff; width: 85%; margin: 0 auto; border-radius: 15px; }
+                        h1 { color: #1e3a8a; font-size: 26pt; margin-bottom: 5px; text-transform: uppercase; }
+                        h2 { color: #b45309; font-size: 22pt; margin: 15px 0; border-bottom: 2px solid #f59e0b; display: inline-block; padding-bottom: 5px; }
+                        p { font-size: 13pt; color: #334155; line-height: 1.6; }
+                        .score { color: #1d4ed8; font-weight: bold; }
+                        .footer { margin-top: 50px; font-size: 11pt; color: #64748b; }
+                    </style>
+                </head>
+                <body>
+                    <div class="cert-box">
+                        <p style="font-size: 11pt; color: #b45309; font-weight: bold; letter-spacing: 2px;">ENGLISH PUBLIC SPEAKING MASTERY</p>
+                        <h1>CERTIFICATE OF ACHIEVEMENT</h1>
+                        <p>This is proudly presented to:</p>
+                        <h2>${studentName}</h2>
+                        <p>Siswa SMA Kelas ${studentClass} (${state.student.archetype || 'Public Speaker Persona'})</p>
+                        <br/>
+                        <p>For successfully completing the interactive training modules, vocal modulation exercises, and passing the <strong>English Speech Assessment</strong> with an outstanding score of <span class="score">${studentScore}/100</span>.</p>
+                        <br/><br/>
+                        <div class="footer">
+                            <p>Issued Date: ${dateStr}</p>
+                            <p><strong>English Speech Master Program & Official Instructor</strong></p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob(['\ufeff' + docContent], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Sertifikat_Speech_${studentName.replace(/\s+/g, '_')}.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize Application
+        window.onload = function() {
+            renderQuizQuestions();
+            const dateStr = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('cert-date-display').innerText = `Tanggal: ${dateStr}`;
+        };
+    </script>
+</body>
+</html>
